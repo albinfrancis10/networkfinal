@@ -4,33 +4,55 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'sample-app/index.html'
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3  # Updated to v3 for better support
 
-      - name: Copy index.html to EC2 instance
-        uses: appleboy/scp-action@master
+      - name: List files to check for index.html
+        run: ls -al sample-app/  # Check files in the sample-app directory
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3  # Updated to v3 for better support
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          source: "index.html"
-          target: "/home/ec2-user/"
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: SSH into EC2 instance and restart Docker container
+      - name: Check buildx builder
+        run: docker buildx ls
+
+      - name: Build Docker image
+        run: |
+          docker buildx build --platform linux/amd64 -t albinfrancis12/my-app:latest -f ./sample-app/Dockerfile ./sample-app --push
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Deploy to EC2 instance via SSH
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
+          host: ${{ secrets.EC2_HOST }}  # Replace with your EC2 instance public IP
+          username: ${{ secrets.EC2_USERNAME }}  # Replace with your EC2 username (e.g., "ubuntu" or "ec2-user")
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}  # Replace with your SSH private key
           script: |
-            cd /home/ec2-user/
-            sudo docker-compose down
-            sudo docker-compose up -d
+            docker pull albinfrancis12/my-app:latest
+            docker stop my-container || true
+            docker rm my-container || true
+            docker run -d --name my-container -p 80:80 albinfrancis12/my-app:latest
