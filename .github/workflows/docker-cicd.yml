@@ -53,8 +53,8 @@ jobs:
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
           script: |
             docker images  # Debugging: List all images
-            docker pull albinfrancis12/my-app1:latest
+            docker pull albinfrancis12/my-app:latest
             docker images  # Debugging: Verify the image was pulled
             docker stop my-container || true
             docker rm my-container || true
-            docker run -d --name my-container -p 80:80 albinfrancis12/my-app1:latest
+            docker run -d --name my-container -p 80:80 albinfrancis12/my-app:latest
