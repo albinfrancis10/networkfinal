@@ -14,16 +14,16 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3  # Updated to v3 for better support
+        uses: actions/checkout@v3
 
       - name: List files to check for index.html
-        run: ls -al sample-app/  # Check files in the sample-app directory
+        run: ls -al sample-app/
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@v3  # Updated to v3 for better support
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -48,11 +48,13 @@ jobs:
       - name: Deploy to EC2 instance via SSH
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.EC2_HOST }}  # Replace with your EC2 instance public IP
-          username: ${{ secrets.EC2_USERNAME }}  # Replace with your EC2 username (e.g., "ubuntu" or "ec2-user")
-          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}  # Replace with your SSH private key
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
           script: |
+            docker images  # Debugging: List all images
             docker pull albinfrancis12/my-app1:latest
+            docker images  # Debugging: Verify the image was pulled
             docker stop my-container || true
             docker rm my-container || true
             docker run -d --name my-container -p 80:80 albinfrancis12/my-app1:latest
