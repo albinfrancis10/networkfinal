@@ -105,7 +105,7 @@ git init
 git add .
 git commit -m "Initial commit"
 git branch -M main
-git remote add origin <your-github-repository-url>
+git remote add origin https://github.com/albinfrancis10/networkfinal.git
 git push -u origin main
 5. Implement CI/CD Pipeline with GitHub Actions
 Navigate to the .github/workflows folder:
