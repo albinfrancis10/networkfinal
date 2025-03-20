@@ -1,11 +1,11 @@
 provider "aws" {
-  region = "eu-west-1" # Change to your preferred region
+  region = "eu-west-1" 
 }
 
 resource "aws_instance" "docker_server" {
-  ami           = "ami-0a89fa9a6d8c7ad98" # Amazon Linux 2 AMI
+  ami           = "ami-0a89fa9a6d8c7ad98"
   instance_type = "t2.micro"
-  key_name      = "docker-server-key" # Replace with your EC2 key pair name
+  key_name      = "docker-server-key" 
 
   vpc_security_group_ids = [aws_security_group.docker_sg.id]
 
